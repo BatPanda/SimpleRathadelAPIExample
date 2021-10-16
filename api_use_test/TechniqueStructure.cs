@@ -15,13 +15,45 @@ public enum MasteryTypes
 
 public struct MasteryStruct
 {
-    public MasteryTypes type; //int order is standard (0 = small success, 5 = divine) when moving from json to enum.
-    public int total_points; //total summed points from all stages within this mastery.
-    public int total_levels; //total summed levels from all stages within this mastery.
-    public int total_stages; //total number of stages in the technique.
-    public int total_levels_per_stage; //the number of levels per stage.
-    public List<StageStruct> stages; //list of stages in this mastery.
+    /// <summary>
+    /// Int order is standard (0 = small success, 5 = divine) when moving from json to enum.
+    /// </summary>
+    public MasteryTypes type;
 
+    /// <summary>
+    /// Total summed points from all stages within this mastery.
+    /// </summary>
+    public int total_points;
+
+    /// <summary>
+    /// Total summed levels from all stages within this mastery.
+    /// </summary>
+    public int total_levels;
+
+    /// <summary>
+    /// Total number of stages in the technique.
+    /// </summary>
+    public int total_stages;
+
+    /// <summary>
+    /// The number of levels per stage.
+    /// </summary>
+    public int total_levels_per_stage;
+
+    /// <summary>
+    /// List of stages in this mastery.
+    /// </summary>
+    public List<StageStruct> stages;
+
+    /// <summary>
+    /// Mastery Struct Constructor
+    /// </summary>
+    /// <param name="_type">Int order is standard (0 = small success, 5 = divine) when moving from json to enum.</param>
+    /// <param name="_total_points">Total summed points from all stages within this mastery.</param>
+    /// <param name="_total_levels">Total summed levels from all stages within this mastery.</param>
+    /// <param name="_total_stages">Total number of stages in the technique.</param>
+    /// <param name="_total_levels_per_stage">The number of levels per stage.</param>
+    /// <param name="_stages">List of stages in this mastery.</param>
     public MasteryStruct(MasteryTypes _type, int _total_points, int _total_levels, int _total_stages, int _total_levels_per_stage, List<StageStruct> _stages) {
         type = _type;
         total_points = _total_points;
@@ -34,10 +66,27 @@ public struct MasteryStruct
 
 public struct StageStruct
 {
-    public int total_points; //total summed points for this stage.
-    public int total_levels; //total summed levels for this stage.
-    public List<LevelStruct> levels; //list of levels in this stage
+    /// <summary>
+    /// Total summed points for this stage.
+    /// </summary>
+    public int total_points;
 
+    /// <summary>
+    /// Total summed levels for this stage.
+    /// </summary>
+    public int total_levels;
+
+    /// <summary>
+    /// List of levels in this stage.
+    /// </summary>
+    public List<LevelStruct> levels;
+
+    /// <summary>
+    /// Stage Struct Constructor
+    /// </summary>
+    /// <param name="_total_points">Total summed points for this stage.</param>
+    /// <param name="_total_levels">Total summed levels for this stage.</param>
+    /// <param name="_levels">List of levels in this stage.</param>
     public StageStruct(int _total_points, int _total_levels, List<LevelStruct> _levels) {
         total_points = _total_points;
         total_levels = _total_levels;
@@ -47,11 +96,33 @@ public struct StageStruct
 
 public struct LevelStruct
 {
-    public int required_points; //number of points to complete this specific level.
-    public string point_type; //the type of points needed to make progress in this level. By default it is "standard". Can also be "falconry".
-    public string level_type; //the type of level this is. Can be either: "action", "auxiliary", or "increase".
-    public string level_content; //the string content of the level.
+    /// <summary>
+    /// Number of points to complete this specific level.
+    /// </summary>
+    public int required_points;
 
+    /// <summary>
+    /// The type of points needed to make progress in this level. By default it is "standard". Can also be "falconry".
+    /// </summary>
+    public string point_type;
+
+    /// <summary>
+    /// The type of level this is. Can be either: "action", "auxiliary", or "increase".
+    /// </summary>
+    public string level_type;
+
+    /// <summary>
+    /// The string content of the level.
+    /// </summary>
+    public string level_content;
+
+    /// <summary>
+    /// Level Struct Constructor
+    /// </summary>
+    /// <param name="_required_points">Number of points to complete this specific level.</param>
+    /// <param name="_point_type">The type of points needed to make progress in this level. By default it is "standard". Can also be "falconry".</param>
+    /// <param name="_level_type">The type of level this is. Can be either: "action", "auxiliary", or "increase".</param>
+    /// <param name="_level_content">The string content of the level.</param>
     public LevelStruct(int _required_points, string _point_type, string _level_type, string _level_content) {
         required_points = _required_points;
         point_type = _point_type;
@@ -62,22 +133,76 @@ public struct LevelStruct
 
 public class TechniqueData
 {
-    public int id; //the uuid of the technique.
-    public string name; //the name of the technique.
-    public string cluster; //the cluster name this technique belongs in.
-    public string grade_colour; //the string name of the grade e.g. "red"
-    public int grade_number; //the level within the grade e.g. 1.
-    public int total_points; //the total summed points from all masteries.
-    public int total_levels; //the total summed levels from all masteries.
-    public int full_stage_number; //the expected number of stages when complete.
-    public List<string> requirements; //list of requirements to use the technique.
-    public List<string> manual_location; //list of locations where the technique can be found in game.
-    public bool finished; //is the technique complete?
-    public List<MasteryStruct> masteries; //list of masteries within the technique.
+    /// <summary>
+    /// The uuid of the technique.
+    /// </summary>
+    public int id;
+
+    /// <summary>
+    /// The name of the technique.
+    /// </summary>
+    public string name;
+
+    /// <summary>
+    /// The cluster name this technique belongs in.
+    /// </summary>
+    public string cluster;
+
+    /// <summary>
+    /// The string name of the grade e.g. "red"
+    /// </summary>
+    public string grade_colour;
+
+    /// <summary>
+    /// The level within the grade e.g. 1.
+    /// </summary>
+    public int grade_number;
+
+    /// <summary>
+    /// The total summed points from all masteries.
+    /// </summary>
+    public int total_points;
+
+    /// <summary>
+    /// The total summed levels from all masteries.
+    /// </summary>
+    public int total_levels;
+
+    /// <summary>
+    /// The expected number of stages when complete.
+    /// </summary>
+    public int full_stage_number;
+
+    /// <summary>
+    /// The list of requirements to use the technique.
+    /// </summary>
+    public List<string> requirements;
+
+    /// <summary>
+    /// The list of locations where the technique can be found in game.
+    /// </summary>
+    public List<string> manual_location;
+
+    /// <summary>
+    /// Wether the technique complete or not.
+    /// </summary>
+    public bool finished;
+
+    /// <summary>
+    /// The list of masteries within the technique.
+    /// </summary>
+    public List<MasteryStruct> masteries; 
 }
 
-class TechniqueStructure
+public class TechniqueStructure
 {
-    public int technique_quantity; //number of techniques.
-    public List<TechniqueData> techniques; //list of all techniques.
+    /// <summary>
+    /// The number of techniques.
+    /// </summary>
+    public int technique_quantity;
+
+    /// <summary>
+    /// A list of all the techniques.
+    /// </summary>
+    public List<TechniqueData> techniques;
 }
