@@ -65,33 +65,35 @@ class Program
 
     public static void printApplyPointFunctionTestResults(TechniqueStructure _tech) {
         PointGainResultStruct result_one = _tech.applyPoints(new PointGainConfig(30, 0));
-        printPointGainResultStruct(result_one);
-        PointGainResultStruct result_two = _tech.applyPoints(new PointGainConfig(30, 0, 13));
-        printPointGainResultStruct(result_two);
-        PointGainResultStruct result_three = _tech.applyPoints(new PointGainConfig(30, 0, 14));
-        printPointGainResultStruct(result_three);
-        PointGainResultStruct result_four = _tech.applyPoints(new PointGainConfig(30, 0, 15));
-        printPointGainResultStruct(result_four);
+        printPointGainResultStruct(result_one, _tech);
+        PointGainResultStruct result_two = _tech.applyPoints(new PointGainConfig(30, 0, 0, new List<int>() { 13 }));
+        printPointGainResultStruct(result_two, _tech);
+        PointGainResultStruct result_three = _tech.applyPoints(new PointGainConfig(30, 0, 0, new List<int>() { 14 }));
+        printPointGainResultStruct(result_three, _tech);
+        PointGainResultStruct result_four = _tech.applyPoints(new PointGainConfig(30, 0, 0, new List<int>() { 15 }));
+        printPointGainResultStruct(result_four, _tech);
         PointGainResultStruct result_five = _tech.applyPoints(new PointGainConfig(3000, 0, 0));
-        printPointGainResultStruct(result_five);
-        PointGainResultStruct result_six = _tech.applyPoints(new PointGainConfig(4000, 0, 0, 0));
-        printPointGainResultStruct(result_six);
-        PointGainResultStruct result_seven = _tech.applyPoints(new PointGainConfig(3000, 0, 50, 1, new TMaybe<List<MasteryTypes>>(new List<MasteryTypes>() { MasteryTypes.SMALL_SUCCESS, MasteryTypes.LARGE_SUCCESS })));
-        printPointGainResultStruct(result_seven);
+        printPointGainResultStruct(result_five, _tech);
+        PointGainResultStruct result_six = _tech.applyPoints(new PointGainConfig(4000, 0, 0, new List<int>() { 0 }, 0));
+        printPointGainResultStruct(result_six, _tech);
+        PointGainResultStruct result_seven = _tech.applyPoints(new PointGainConfig(3000, 0, 0, new List<int>() { 50 }, 1, new TMaybe<List<MasteryTypes>>(new List<MasteryTypes>() { MasteryTypes.SMALL_SUCCESS, MasteryTypes.LARGE_SUCCESS })));
+        printPointGainResultStruct(result_seven, _tech);
 
         PointGainResultStruct result_eight = _tech.applyPoints(new PointGainConfig(1440, 53, 1020));
-        printPointGainResultStruct(result_eight);
+        printPointGainResultStruct(result_eight, _tech);
     }
 
-    public static void printPointGainResultStruct(PointGainResultStruct _pgrs) {
+    public static void printPointGainResultStruct(PointGainResultStruct _pgrs, TechniqueStructure _tech_struc) {
         Console.WriteLine("\n\n");
         Console.WriteLine("Point Gain Results\n=================================");
-        Console.WriteLine($"Placed {_pgrs.config_used.points_to_apply} points into technique {_pgrs.config_used.target_technique_id}.");
-        Console.WriteLine($"The technique had {_pgrs.config_used.pre_applied_points} points allocated to it already.");
-        if (_pgrs.config_used.stage_limit != 0) { Console.WriteLine($"Points placement was restricted to stages 1-{_pgrs.config_used.stage_limit}"); }
-        if (_pgrs.config_used.mastery_limit.is_some) { Console.WriteLine($"Points placement was restricted to the following masteries:{_pgrs.config_used.mastery_limit.value.Aggregate("", (_a, _b) => _a += $"\n{_b.ToString()}")}"); }
-        if (_pgrs.ran_out_of_levels) { Console.WriteLine($"Warning! Ran out of levels to apply points too!"); }
-        Console.WriteLine($"Levels Gained: {_pgrs.levels_gained.Count}.");
+        Console.WriteLine($"Placed {_pgrs.config_used.points_to_apply} points into technique {_tech_struc.getIdToTechniqueName()[_pgrs.config_used.target_technique_id]}.");
+        Console.WriteLine($"Placed {_pgrs.config_used.floating_points} floating points into technique {_tech_struc.getIdToTechniqueName()[_pgrs.config_used.target_technique_id]}.");
+        Console.WriteLine("\n");
+        Console.WriteLine($"The technique had {_pgrs.config_used.pre_applied_points.Sum()} points allocated to it already.");
+        if (_pgrs.config_used.stage_limit != 0) { Console.WriteLine($"Point placement was restricted to stages 1-{_pgrs.config_used.stage_limit}"); }
+        if (_pgrs.config_used.mastery_limit.is_some) { Console.WriteLine($"Point placement was restricted to the following masteries:{_pgrs.config_used.mastery_limit.value.Aggregate("", (_a, _b) => _a += $"\n{_b.ToString()}")}"); }
+        Console.WriteLine("\n");
+        Console.WriteLine($"Levels Gained: {_pgrs.levels_gained.Count} (Technique has {_tech_struc.techniques[_pgrs.config_used.target_technique_id].total_levels} Total Levels)");
         Console.WriteLine($"Points Spent: {_pgrs.points_spent}.");
         Console.WriteLine($"Points Remaining: {_pgrs.remaining_points}.");
         Console.WriteLine($"Gained floating level: {_pgrs.gained_floating_level}.");
@@ -108,11 +110,11 @@ class Program
     }
 
     public static void letsGo(TechniqueStructure _tech) {
-        printPointGainResultStruct(_tech.applyPoints(new PointGainConfig(83, 0, _tech.getPointsFromLevelsFromTechnique(new LevelPayloadStruct(10, 10, 10, 10), 0)+10, 1)));
+        printPointGainResultStruct(_tech.applyPoints(new PointGainConfig(83, 10, 0, _tech.getPointsFromLevelsFromTechnique(new LevelPayloadStruct(10, 10, 10, 10), 0), 1)), _tech);
     }
 
     public static void startPointIncreaseInterface(TechniqueStructure _tech) {
-        Console.WriteLine("\n=================================\nPoint Increase Terminal v1.0\n=================================\n\n");
+        Console.WriteLine("\n=================================\nPoint Increase Terminal v2.0\n=================================\n\n");
         Console.Write("Please enter the ID of the technique you wish to increase: ");
         int id = int.Parse(Console.ReadLine());
         Console.WriteLine($"\nLoaded {_tech.getIdToTechniqueName()[id]} successfully!\n");
@@ -121,22 +123,41 @@ class Program
         Console.Write("\nPlease enter the number of levels already obtained for the following:\n");
         Console.Write("Small Success: ");
         int _ss = int.Parse(Console.ReadLine());
-        Console.Write("Large Success: ");
-        int _ls = int.Parse(Console.ReadLine());
-        Console.Write("Small Perfection: ");
-        int _sp = int.Parse(Console.ReadLine());
-        Console.Write("Great Perfection: ");
-        int _gp = int.Parse(Console.ReadLine());
-        Console.Write("Obscure: ");
-        int _o = int.Parse(Console.ReadLine());
-        Console.Write("Divine: ");
-        int _d = int.Parse(Console.ReadLine());
+
+        int _ls;
+        if (_ss != 0) { Console.Write("Large Success: "); _ls = int.Parse(Console.ReadLine()); } else { _ls = 0; }
+        int _sp;
+        if (_ls != 0) { Console.Write("Small Perfection: "); _sp = int.Parse(Console.ReadLine()); } else { _sp = 0; }
+        int _gp;
+        if (_sp != 0) { Console.Write("Great Perfection: "); _gp = int.Parse(Console.ReadLine()); } else { _gp = 0; }
+        int _o;
+        if (_gp != 0) { Console.Write("Obscure: "); _o = int.Parse(Console.ReadLine()); } else { _o = 0; }
+        int _d;
+        if (_o != 0) { Console.Write("Divine: "); _d = int.Parse(Console.ReadLine()); } else { _d = 0; }
+
         Console.Write("\nPlease enter the number of hanging points left over: ");
         int _h = int.Parse(Console.ReadLine());
+
+        Console.Write("\nPlease enter a Mastery limiter (-1 = ignore, 0 = SS only, 1 = LS only, 2 = SP only, 0&1 = SS and LS only): ");
+        string _mt = Console.ReadLine();
+        TMaybe<List<MasteryTypes>> m_limiter;
+        if (_mt == "-1") {
+            m_limiter = new TMaybe<List<MasteryTypes>>();
+        } else {
+            if (_mt.Contains('&')) {
+                List<string> mast_nums = _mt.Split('&', StringSplitOptions.RemoveEmptyEntries).ToList();
+                List<MasteryTypes> ml_ret = new List<MasteryTypes>();
+                mast_nums.ForEach(_e => ml_ret.Add((MasteryTypes)int.Parse(_e)));
+                m_limiter = new TMaybe<List<MasteryTypes>>(ml_ret);
+            } else {
+                m_limiter = new TMaybe<List<MasteryTypes>>(new List<MasteryTypes>() { (MasteryTypes)int.Parse(_mt) });
+            }
+        }
+
         Console.Write("\nPlease enter a stage limiter (0 = none, 1 = stage 1 only, 2 = stage 1 & 2 only, etc...): ");
         int _st = int.Parse(Console.ReadLine());
 
-        printPointGainResultStruct(_tech.applyPoints(new PointGainConfig(new_points, id, _tech.getPointsFromLevelsFromTechnique(new LevelPayloadStruct(_ss, _ls, _sp, _gp, _o, _d), id)+_h, _st)));
+        printPointGainResultStruct(_tech.applyPoints(new PointGainConfig(new_points, id, _h, _tech.getPointsFromLevelsFromTechnique(new LevelPayloadStruct(_ss, _ls, _sp, _gp, _o, _d), id), _st,m_limiter)), _tech);
 
         Console.Write("\n\n\nPress enter to apply more points...");
         Console.ReadLine();

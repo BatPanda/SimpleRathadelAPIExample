@@ -26,7 +26,8 @@ public enum ClusterTypes
     BEAST_TAMING_FALCONRY,
     INTERNAL_CLUSTERLESS,
     MOVEMENT_CLUSTERLESS,
-    SOUL_TEMPERING_SOUL_CONDENSING
+    INTERNAL_SOUL_CONDENSING,
+    MARTIAL_COMBATANT
 }
 
 public struct PointGainConfig 
@@ -47,14 +48,19 @@ public struct PointGainConfig
     public TMaybe<List<MasteryTypes>> mastery_limit;
 
     /// <summary>
-    /// The offset from the start of any given stage in points.
+    /// The offset from the start of any given stage in points from pre-gained levels.
     /// </summary>
-    public int pre_applied_points;
+    public List<int> pre_applied_points;
 
     /// <summary>
     /// The limit for which stages should be applied to. 0 means no stage limit, 1 means you are only putting points into stage 1, 2 means you are putting points into stage 1 and 2, etc.
     /// </summary>
     public int stage_limit;
+
+    /// <summary>
+    /// The floating points left over from previous point gains that can be used to unlock more levels now.
+    /// </summary>
+    public int floating_points;
 
     /// <summary>
     /// Point gain config constructor
@@ -65,8 +71,9 @@ public struct PointGainConfig
         points_to_apply = _points_to_apply;
         target_technique_id = _target_technique_id;
         mastery_limit = new TMaybe<List<MasteryTypes>>();
-        pre_applied_points = 0;
         stage_limit = 0;
+        pre_applied_points = Enumerable.Range(0,stage_limit).Select(_ => 0).ToList();
+        floating_points = 0;
     }
 
     /// <summary>
@@ -74,13 +81,30 @@ public struct PointGainConfig
     /// </summary>
     /// <param name="_points_to_apply">The amount of points that will be applied to the technique.</param>
     /// <param name="_target_technique_id">The UUID of the technique you are applying points to.</param>
+    /// <param name="_floating_points">The floating points left over from previous point gains that can be used to unlock more levels now.</param>
+    public PointGainConfig(int _points_to_apply, int _target_technique_id, int _floating_points) {
+        points_to_apply = _points_to_apply;
+        target_technique_id = _target_technique_id;
+        mastery_limit = new TMaybe<List<MasteryTypes>>();
+        stage_limit = 0;
+        pre_applied_points = Enumerable.Range(0, stage_limit).Select(_ => 0).ToList();
+        floating_points = _floating_points;
+    }
+
+    /// <summary>
+    /// Point gain config constructor
+    /// </summary>
+    /// <param name="_points_to_apply">The amount of points that will be applied to the technique.</param>
+    /// <param name="_target_technique_id">The UUID of the technique you are applying points to.</param>
+    /// <param name="_floating_points">The floating points left over from previous point gains that can be used to unlock more levels now.</param>
     /// <param name="_pre_applied_points">The offset from the start of any given stage in points.</param>
-    public PointGainConfig(int _points_to_apply, int _target_technique_id, int _pre_applied_points) {
+    public PointGainConfig(int _points_to_apply, int _target_technique_id, int _floating_points, List<int> _pre_applied_points) {
         points_to_apply = _points_to_apply;
         target_technique_id = _target_technique_id;
         mastery_limit = new TMaybe<List<MasteryTypes>>();
         pre_applied_points = _pre_applied_points;
         stage_limit = 0;
+        floating_points = _floating_points;
     }
 
     /// <summary>
@@ -88,14 +112,16 @@ public struct PointGainConfig
     /// </summary>
     /// <param name="_points_to_apply">The amount of points that will be applied to the technique.</param>
     /// <param name="_target_technique_id">The UUID of the technique you are applying points to.</param>
+    /// <param name="_floating_points">The floating points left over from previous point gains that can be used to unlock more levels now.</param>
     /// <param name="_pre_applied_points">The offset from the start of any given stage in points.</param>
     /// <param name="_stage_limit">The limit for which stages should be applied to. 0 means no stage limit, 1 means you are only putting points into stage 1, 2 means you are putting points into stage 1 and 2, etc.</param>
-    public PointGainConfig(int _points_to_apply, int _target_technique_id, int _pre_applied_points, int _stage_limit) {
+    public PointGainConfig(int _points_to_apply, int _target_technique_id, int _floating_points, List<int> _pre_applied_points, int _stage_limit) {
         points_to_apply = _points_to_apply;
         target_technique_id = _target_technique_id;
         mastery_limit = new TMaybe<List<MasteryTypes>>();
         pre_applied_points = _pre_applied_points;
         stage_limit = _stage_limit;
+        floating_points = _floating_points;
     }
 
     /// <summary>
@@ -103,15 +129,17 @@ public struct PointGainConfig
     /// </summary>
     /// <param name="_points_to_apply">The amount of points that will be applied to the technique.</param>
     /// <param name="_target_technique_id">The UUID of the technique you are applying points to.</param>
+    /// <param name="_floating_points">The floating points left over from previous point gains that can be used to unlock more levels now.</param>
     /// <param name="_pre_applied_points">The offset from the start of any given stage in points.</param>
     /// <param name="_stage_limit">The limit for which stages should be applied to. 0 means no stage limit, 1 means you are only putting points into stage 1, 2 means you are putting points into stage 1 and 2, etc.</param>
     /// <param name="_mastery_limit">If some, it will only apply points into the masteries in the list.</param>
-    public PointGainConfig(int _points_to_apply, int _target_technique_id, int _pre_applied_points, int _stage_limit, TMaybe<List<MasteryTypes>> _mastery_limit) {
+    public PointGainConfig(int _points_to_apply, int _target_technique_id, int _floating_points, List<int> _pre_applied_points, int _stage_limit, TMaybe<List<MasteryTypes>> _mastery_limit) {
         points_to_apply = _points_to_apply;
         target_technique_id = _target_technique_id;
         mastery_limit = _mastery_limit;
         pre_applied_points = _pre_applied_points;
         stage_limit = _stage_limit;
+        floating_points = _floating_points;
     }
 }
 public struct PointGainResultStruct
@@ -142,11 +170,6 @@ public struct PointGainResultStruct
     public PointGainConfig config_used;
 
     /// <summary>
-    /// If you did not run out of points before running out of levels.
-    /// </summary>
-    public bool ran_out_of_levels;
-
-    /// <summary>
     /// PointGainResultStruct constructor.
     /// </summary>
     /// <param name="_levels_gained">The List of level structs gained from the allocated points.</param>
@@ -154,14 +177,12 @@ public struct PointGainResultStruct
     /// <param name="_spent">The amount of points spent to aquire the levels gained.</param>
     /// <param name="_gained_floating_level">If the allocated points did not reach the amount of points required to unlock the next level, but did due to remaining floating points, this is true.</param>
     /// <param name="_config_used">The config used to generate the result.</param>
-    /// <param name="_ran_out_of_levels">If you did not run out of points before running out of levels.</param>
-    public PointGainResultStruct(List<LevelStruct> _levels_gained, int _remaining, int _spent, bool _gained_floating_level, PointGainConfig _config_used, bool _ran_out_of_levels) {
+    public PointGainResultStruct(List<LevelStruct> _levels_gained, int _remaining, int _spent, bool _gained_floating_level, PointGainConfig _config_used) {
         levels_gained = _levels_gained;
         remaining_points = _remaining;
         points_spent = _spent;
         gained_floating_level = _gained_floating_level;
         config_used = _config_used;
-        ran_out_of_levels = _ran_out_of_levels;
     }
 }
 
@@ -329,7 +350,8 @@ public static class TechniqueHelper {
         ClusterTypes.BEAST_TAMING_FALCONRY => "Beast Taming - Falconry",
         ClusterTypes.INTERNAL_CLUSTERLESS => "Internal - Clusterless",
         ClusterTypes.MOVEMENT_CLUSTERLESS => "Movement - Clusterless",
-        ClusterTypes.SOUL_TEMPERING_SOUL_CONDENSING => "Soul Tempering - Soul Condensing",
+        ClusterTypes.INTERNAL_SOUL_CONDENSING => "Internal - Soul Condensing",
+        ClusterTypes.MARTIAL_COMBATANT => "Martial - Combatant",
         _ => throw new ArgumentException($"'{_cluster_type}' does not have a registered literal string. Please add one to clusterTypeEnumToString() function.")
     };
 
@@ -360,7 +382,8 @@ public static class TechniqueHelper {
         "beast taming - falconry" => ClusterTypes.BEAST_TAMING_FALCONRY,
         "internal - clusterless" => ClusterTypes.INTERNAL_CLUSTERLESS,
         "movement - clusterless" => ClusterTypes.MOVEMENT_CLUSTERLESS,
-        "soul tempering - soul condensing" => ClusterTypes.SOUL_TEMPERING_SOUL_CONDENSING,
+        "internal - soul condensing" => ClusterTypes.INTERNAL_SOUL_CONDENSING,
+        "martial - combatant" => ClusterTypes.MARTIAL_COMBATANT,
         _ => throw new ArgumentException($"'{_cluster_string}' does not have a registered enum associated with it. Please add one to stringToClusterTypeEnum() function.")
     };
 
@@ -390,72 +413,31 @@ public static class TechniqueHelper {
     /// <param name="_config">A Point Gain Config used to determain how the points are applied to a given technique.</param>
     /// <returns></returns>
     public static PointGainResultStruct applyPoints(this TechniqueData _tech_data, PointGainConfig _config) {
-        List<LevelStruct> levels_gained = new List<LevelStruct>();
+        List<LevelStruct> gained_levels = new List<LevelStruct>();
         int points_spent = 0;
-        int floating_points = 0;
+        int floating_points = _config.floating_points;
+        List<int> offset_points = _config.pre_applied_points;
         int points_left = _config.points_to_apply;
         bool gained_floating_level = false;
-        bool ran_out_of_levels = false;
 
-        TechniqueData technique = _tech_data;
-        List<LevelStruct> all_valid_levels = new List<LevelStruct>();
+        List<MasteryStruct> valid_m = _config.mastery_limit.is_some ? _tech_data.masteries.Where(_m => _config.mastery_limit.value.Contains(_m.type)).ToList() : _tech_data.masteries;
 
-        foreach (MasteryStruct mastery in technique.masteries) {
-            if ((!_config.mastery_limit.is_some) || (_config.mastery_limit.value.Contains(mastery.type))) {
-                List<StageStruct> valid_stages = new List<StageStruct>();
-                if (_config.stage_limit == 0) {
-                    valid_stages = mastery.stages;
-                } else {
-                    int inc = 0;
-                    int dec = _config.stage_limit;
-                    while (dec != 0) {
-                        valid_stages.Add(mastery.stages[inc]);
-                        inc++;
-                        dec--;
-                    }
-                }
-                valid_stages.ForEach((_s) => _s.levels.ForEach((_l) => all_valid_levels.Add(_l)));
-            }
-        }
+        Dictionary<MasteryTypes,List<StageStruct>> valid_s = _config.stage_limit != 0 ? valid_m.Select(_m => (_m.type,_m.stages.Take(_config.stage_limit).ToList())).ToDictionary(x=>x.type,x=>x.Item2) : valid_m.Select(_m => (_m.type,_m.stages)).ToDictionary(x=>x.type,x=>x.stages);
 
-        if (all_valid_levels.Count == 0) {
-            return new PointGainResultStruct(levels_gained, points_left, points_spent, gained_floating_level, _config, ran_out_of_levels);
-        } else {
-            Queue<LevelStruct> levels = new Queue<LevelStruct>(all_valid_levels);
-            int pre_points = _config.pre_applied_points;
-            bool can_spend_pre_points = true;
-            while (can_spend_pre_points) {
-                if (levels.Count == 0) { floating_points += pre_points; can_spend_pre_points = false; ran_out_of_levels = true; } else if (levels.Peek().required_points <= pre_points) {
-                    pre_points -= levels.Peek().required_points;
-                    levels.Dequeue();
-                } else if (levels.Peek().required_points > pre_points) {
-                    floating_points = pre_points;
-                    can_spend_pre_points = false;
-                }
-            }
-            bool can_spend_points = true;
-            while (can_spend_points) {
-                if (levels.Count == 0) { points_left += floating_points; can_spend_points = false; ran_out_of_levels = true; } else if (levels.Peek().required_points <= points_left) {
-                    int cost = levels.Peek().required_points;
-                    points_left -= cost;
-                    points_spent += cost;
-                    levels_gained.Add(levels.Dequeue());
-                } else if (levels.Peek().required_points > points_left) {
-                    if (levels.Peek().required_points <= (points_left + floating_points)) {
-                        int cost = levels.Peek().required_points;
-                        points_left -= cost;
-                        points_spent += cost;
-                        levels_gained.Add(levels.Dequeue());
-                        gained_floating_level = true;
-                    } else {
-                        points_left += floating_points;
-                        can_spend_points = false;
-                    }
-                }
-            }
+        Dictionary<MasteryTypes,(List<StageStruct>,int)> paired_valid_s = valid_s.Select(_p => (_p.Key, (_p.Value, offset_points.ElementAt((int)_p.Key)))).ToDictionary(_x => _x.Key, _y => _y.Item2);
 
-            return new PointGainResultStruct(levels_gained, points_left, points_spent, gained_floating_level, _config, ran_out_of_levels);
-        }
+        (int, List<LevelStruct>) getUnlockedLevels(List<LevelStruct> _xs, int _offs) =>
+            _xs.Aggregate((_offs, new List<LevelStruct>()), ((int, List<LevelStruct>) _acc, LevelStruct _x) => { if (_x.required_points <= _acc.Item1) { _acc.Item2.Add(_x); return (_acc.Item1 - _x.required_points, _acc.Item2); } else return (-1, _acc.Item2); });
+
+        List<LevelStruct> pre_unlocked_levels = paired_valid_s.Values.SelectMany(_p => getUnlockedLevels(_p.Item1.SelectMany(_s => _s.levels).ToList(), _p.Item2).Item2).ToList(); 
+        
+        List<LevelStruct> valid_l = _config.pre_applied_points.Sum() != 0 ? valid_s.SelectMany(_s1 => _s1.Value.SelectMany(_s2 => _s2.levels)).Where(_l => !pre_unlocked_levels.Contains(_l)).ToList() : valid_s.SelectMany(_s1 => _s1.Value.SelectMany(_s2 => _s2.levels)).ToList();
+        
+        gained_levels = valid_l.Where(_l => { if (points_left >= _l.required_points) { points_left -= _l.required_points; points_spent += _l.required_points; return true; } else if (points_left+floating_points >= _l.required_points) {floating_points -= _l.required_points; if (floating_points < 0) { points_left += floating_points; floating_points = 0; } points_spent += _l.required_points; gained_floating_level = true; return true; } else return false; }).ToList();
+        
+        points_left += floating_points;
+
+        return new PointGainResultStruct(gained_levels, points_left, points_spent, gained_floating_level, _config);
     }
 
     /// <summary>
@@ -465,7 +447,7 @@ public static class TechniqueHelper {
     /// <param name="_levels">A Level Payload Struct.</param>
     /// <param name="_id">ID the targeted technique.</param>
     /// <returns></returns>
-    public static int getPointsFromLevelsFromTechnique(this TechniqueStructure _tech, LevelPayloadStruct _levels, int _id) {
+    public static List<int> getPointsFromLevelsFromTechnique(this TechniqueStructure _tech, LevelPayloadStruct _levels, int _id) {
         if (!_tech.doesTechniqueIDExist(_id)) { throw new ArgumentException($"A technique with id '{_id}' does not exist."); }
         return _tech.techniques[_id].getPointsFromLevelsFromTechnique(_levels);
     }
@@ -476,20 +458,10 @@ public static class TechniqueHelper {
     /// <param name="_tech_data">Technique Data instance.</param>
     /// <param name="_levels">A Level Payload Struct.</param>
     /// <returns></returns>
-    public static int getPointsFromLevelsFromTechnique(this TechniqueData _tech_data, LevelPayloadStruct _levels) {
-    int output = 0;
-    foreach(MasteryStruct mastery in _tech_data.masteries) {
-        if (_levels.mastery_levels.ContainsKey(mastery.type)) {
-            List<LevelStruct> all_levels = new List<LevelStruct>();
-            mastery.stages.ForEach(_s => _s.levels.ForEach(_l => all_levels.Add(_l)));
-            int limit = _levels.mastery_levels[mastery.type];
-            List<LevelStruct> limited_list = all_levels.Where((_f) => { if (limit == 0) { return false; } else { limit--; return true; } }).ToList();
-            if (limited_list.Count > 0) {
-                output += limited_list.Aggregate(0, (_a, _b) => _a + _b.required_points);
-            }
-        }
-    }
-    return output;
+    public static List<int> getPointsFromLevelsFromTechnique(this TechniqueData _tech_data, LevelPayloadStruct _levels) {
+        List<int> output = new List<int>();
+        _tech_data.masteries.ForEach(_m => output.Add(_m.stages.SelectMany(_s => _s.levels).Take(_levels.mastery_levels[_m.type]).Select(_l => _l.required_points).Sum()));
+        return output;
     }
 
 }
