@@ -202,6 +202,11 @@ public class TechniqueStructure
     public int technique_quantity;
 
     /// <summary>
+    /// Added Version Number;
+    /// </summary>
+    public string version_number;
+
+    /// <summary>
     /// A list of all the techniques.
     /// </summary>
     public List<TechniqueData> techniques;

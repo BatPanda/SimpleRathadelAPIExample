@@ -21,7 +21,7 @@ class Program
         if (response.IsSuccessStatusCode) {
             var dataObjects = response.Content;
             TechniqueStructure techniques_data = JsonConvert.DeserializeObject<TechniqueStructure>(dataObjects.ReadAsStringAsync().Result);
-
+            Console.WriteLine("Loaded Remoria Technique API Version: " + techniques_data.version_number);
 
             //printAllUniqueClusters(techniques_data);
             //printClusterFunc(techniques_data.getNumberOfTechniquesPerCluster());
