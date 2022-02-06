@@ -413,31 +413,64 @@ public static class TechniqueHelper {
     /// <param name="_config">A Point Gain Config used to determain how the points are applied to a given technique.</param>
     /// <returns></returns>
     public static PointGainResultStruct applyPoints(this TechniqueData _tech_data, PointGainConfig _config) {
+        
         List<LevelStruct> gained_levels = new List<LevelStruct>();
         int points_spent = 0;
         int floating_points = _config.floating_points;
         List<int> offset_points = _config.pre_applied_points;
-        int points_left = _config.points_to_apply;
+        int points_left = _config.points_to_apply + floating_points;
         bool gained_floating_level = false;
 
         List<MasteryStruct> valid_m = _config.mastery_limit.is_some ? _tech_data.masteries.Where(_m => _config.mastery_limit.value.Contains(_m.type)).ToList() : _tech_data.masteries;
 
-        Dictionary<MasteryTypes,List<StageStruct>> valid_s = _config.stage_limit != 0 ? valid_m.Select(_m => (_m.type,_m.stages.Take(_config.stage_limit).ToList())).ToDictionary(x=>x.type,x=>x.Item2) : valid_m.Select(_m => (_m.type,_m.stages)).ToDictionary(x=>x.type,x=>x.stages);
+        List<List<LevelStruct>> valid_l = new List<List<LevelStruct>>();
+        foreach (MasteryStruct m in valid_m)
+        {
+            valid_l.Add(new List<LevelStruct>());
+            int limit = _config.stage_limit != 0 ? _config.stage_limit : m.stages.Count;
+            for (int i = 0; i < limit; i++)
+            {
+                foreach (LevelStruct l in m.stages[i].levels)
+                {
+                    valid_l[valid_l.Count - 1].Add(l);
+                }
+            }
+        }
 
-        Dictionary<MasteryTypes,(List<StageStruct>,int)> paired_valid_s = valid_s.Select(_p => (_p.Key, (_p.Value, offset_points.ElementAt((int)_p.Key)))).ToDictionary(_x => _x.Key, _y => _y.Item2);
+        bool finished = false;
+        for (int i = 0; i < valid_l.Count && !finished; i++)
+        {
+            bool pointsRemaining = true;
+            int finishedOnLvl = 0;
+            for (int l = 0; l < valid_l[i].Count && pointsRemaining; l++)
+            {
+                pointsRemaining = offset_points[i] >= valid_l[i][l].required_points;
+                if (pointsRemaining)
+                {
+                    offset_points[i] -= valid_l[i][l].required_points;
+                }
+                else
+                {
+                    finishedOnLvl = l;
+                }
+            }
 
-        (int, List<LevelStruct>) getUnlockedLevels(List<LevelStruct> _xs, int _offs) =>
-            _xs.Aggregate((_offs, new List<LevelStruct>()), ((int, List<LevelStruct>) _acc, LevelStruct _x) => { if (_x.required_points <= _acc.Item1) { _acc.Item2.Add(_x); return (_acc.Item1 - _x.required_points, _acc.Item2); } else return (-1, _acc.Item2); });
+            if (!pointsRemaining)
+            {
+                for (int l = finishedOnLvl; l < valid_l[i].Count && !finished; l++)
+                {
+                    finished = points_left < valid_l[i][l].required_points;
+                    if (!finished)
+                    {
+                        points_left -= valid_l[i][l].required_points;
+                        points_spent += valid_l[i][l].required_points;
+                        gained_levels.Add(valid_l[i][l]);
+                    }
+                }
+            }
+        }
 
-        List<LevelStruct> pre_unlocked_levels = paired_valid_s.Values.SelectMany(_p => getUnlockedLevels(_p.Item1.SelectMany(_s => _s.levels).ToList(), _p.Item2).Item2).ToList(); 
-        
-        List<LevelStruct> valid_l = _config.pre_applied_points.Sum() != 0 ? valid_s.SelectMany(_s1 => _s1.Value.SelectMany(_s2 => _s2.levels)).Where(_l => !pre_unlocked_levels.Contains(_l)).ToList() : valid_s.SelectMany(_s1 => _s1.Value.SelectMany(_s2 => _s2.levels)).ToList();
-        
-        gained_levels = valid_l.Where(_l => { if (points_left >= _l.required_points) { points_left -= _l.required_points; points_spent += _l.required_points; return true; } else if (points_left+floating_points >= _l.required_points) {floating_points -= _l.required_points; if (floating_points < 0) { points_left += floating_points; floating_points = 0; } points_spent += _l.required_points; gained_floating_level = true; return true; } else return false; }).ToList();
-        
-        points_left += floating_points;
-
-        return new PointGainResultStruct(gained_levels, points_left, points_spent, gained_floating_level, _config);
+        return new PointGainResultStruct(gained_levels, points_left, points_spent, points_left < floating_points, _config);
     }
 
     /// <summary>
