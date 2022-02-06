@@ -426,9 +426,28 @@ public static class TechniqueHelper {
         int floating_points = _config.floating_points;
         List<int> offset_points = _config.pre_applied_points;
         int points_left = _config.points_to_apply + floating_points;
-        bool gained_floating_level = false;
 
         List<MasteryStruct> valid_m = _config.mastery_limit.is_some ? _tech_data.masteries.Where(_m => _config.mastery_limit.value.Contains(_m.type)).ToList() : _tech_data.masteries;
+
+        List<int> masteries = new List<int>();
+        if (_config.mastery_limit.is_some)
+        {
+            _config.mastery_limit.value.OrderBy(a => a);
+            foreach (var ml in _config.mastery_limit.value)
+            {
+                masteries.Add((int)ml);
+            }
+        }
+        else
+        {
+            masteries.Add(0);
+            masteries.Add(1);
+            masteries.Add(2);
+            masteries.Add(3);
+            masteries.Add(4);
+            masteries.Add(5);
+        }
+
 
         List<List<LevelStruct>> valid_l = new List<List<LevelStruct>>();
         foreach (MasteryStruct m in valid_m)
@@ -445,16 +464,16 @@ public static class TechniqueHelper {
         }
 
         bool finished = false;
-        for (int i = 0; i < valid_l.Count && !finished; i++)
+        for (int i = 0; i < valid_l.Count && i < masteries.Count && !finished; i++)
         {
             bool pointsRemaining = true;
             int finishedOnLvl = 0;
             for (int l = 0; l < valid_l[i].Count && pointsRemaining; l++)
             {
-                pointsRemaining = offset_points[i] >= valid_l[i][l].required_points;
+                pointsRemaining = offset_points[masteries[i]] >= valid_l[i][l].required_points;
                 if (pointsRemaining)
                 {
-                    offset_points[i] -= valid_l[i][l].required_points;
+                    offset_points[masteries[i]] -= valid_l[i][l].required_points;
                 }
                 else
                 {
