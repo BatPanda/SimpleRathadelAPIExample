@@ -27,7 +27,8 @@ class Program
             //printClusterFunc(techniques_data.getNumberOfTechniquesPerCluster());
             //printRandom(techniques_data)
             //printApplyPointFunctionTestResults(techniques_data);
-            printIdToName(techniques_data);
+            //printIdToName(techniques_data);
+            printNameToId(techniques_data);
             //printLevelPointTest(techniques_data);
             //letsGo(techniques_data);
 
@@ -99,6 +100,11 @@ class Program
         Console.WriteLine($"Gained floating level: {_pgrs.gained_floating_level}.");
         Console.WriteLine("=================================");
         Console.WriteLine(_pgrs.levels_gained.Aggregate("", (_a, _b) => _a += $"\n[{_b.required_points}] {_b.level_content}"));
+    }
+
+    public static void printNameToId(TechniqueStructure _tech)
+    {
+        Console.WriteLine(_tech.getTechniqueNameToId().Aggregate("", (_a, _b) => _a += (_b.Value < 10 ? "  " : _b.Value < 100 ? " " : "") + $"{_b.Value} => {_b.Key}\n"));
     }
 
     public static void printIdToName(TechniqueStructure _tech) {

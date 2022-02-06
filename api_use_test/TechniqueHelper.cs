@@ -324,6 +324,13 @@ public static class TechniqueHelper {
     public static Dictionary<int, string> getIdToTechniqueName(this TechniqueStructure _tech) => _tech.techniques.Aggregate(new Dictionary<int, string>(), (_a, _b) => { _a[_b.id] = _b.name; return _a; });
 
     /// <summary>
+    /// Returns a dictionary with a key value of string value of that ID's name within a given TechniqueStructure instance to a ID.
+    /// </summary>
+    /// <param name="_tech">TechniqueStructure instance.</param>
+    /// <returns></returns>
+    public static SortedDictionary<string, int> getTechniqueNameToId(this TechniqueStructure _tech) => _tech.techniques.Aggregate(new SortedDictionary<string, int>(), (_a, _b) => { _a[_b.name] = _b.id; return _a; });
+
+    /// <summary>
     /// Converts the cluster type enum to the string version of the cluster name.
     /// </summary>
     /// <param name="_cluster_type">Cluster Types enum.</param>
